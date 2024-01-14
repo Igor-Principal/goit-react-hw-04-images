@@ -2,72 +2,57 @@ import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Loader from './Loader/Loader';
 import Button from './Button/Button';
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import fetchImg from '../helpers/api.js';
 
-class App extends Component {
-  state = {
-    gallery: [],
-    page: 1,
-    textFind: '',
-    perPage: 12,
-    isLoad: false,
-    totalHits: 0,
-  };
+const App = () => {
+  const [gallery, setGallery] = useState([]);
+  const [page, setPage] = useState(1);
+  const [textFind, setTextFind] = useState('');
+  const [perPage, setPerPage] = useState(12);
+  const [isLoad, setIsLoad] = useState(false);
+  const [totalHits, setTotalHits] = useState(0);
 
-  handleTextSubmit = value => {
+  const handleTextSubmit = value => {
     if (!value) return;
 
-    this.setState({
-      textFind: value,
-      gallery: [],
-      page: 1,
-      isLoad: false,
-      totalHits: 0,
-    });
+    setGallery([]);
+    setPage(1);
+    setTextFind(value);
+    setIsLoad(false);
+    setTotalHits(0);
   };
 
-  componentDidUpdate(_, prevState) {
-    if (
-      prevState.textFind !== this.state.textFind ||
-      prevState.page !== this.state.page
-    ) {
-      const selectPage = this.state.page;
-      this.setState({ isLoad: true });
+  useEffect(() => {
+    if (!textFind) return;
 
-      fetchImg(selectPage, this.state.textFind, this.state.perPage)
-        .then(data => {
-          this.setState(prev => ({
-            gallery: [...prev.gallery, ...data.hits],
-            page: selectPage,
-            totalHits: data.totalHits,
-          }));
-        })
-        .catch(e => console.error('API Error:', e))
-        .finally(() => {
-          this.setState({ isLoad: false });
-        });
-    }
-  }
+    setIsLoad(true);
+    fetchImg(page, textFind, perPage)
+      .then(data => {
+        setGallery(prev=> [...prev, ...data.hits]);
+        setTotalHits(data.totalHits);
+      })
+      .catch(e => console.error('API Error:', e))
+      .finally(() => {
+        setIsLoad(false);
+      });
+  }, [textFind, page]);
 
-  handleLoadMore = () => {
-    this.setState(prev => ({ page: prev.page + 1, isLoad: true }));
+  const handleLoadMore = () => {
+    setPage(page + 1);
+    setIsLoad(true);
   };
 
-  render() {
-    const { isLoad, gallery, totalHits, page, perPage } = this.state;
-
-    return (
-      <div className="App">
-        <Searchbar onSubmit={this.handleTextSubmit} />
-        <ImageGallery data={gallery} />
-        {isLoad && <Loader />}
-        {gallery.length > 0 && totalHits > page * perPage && !isLoad && (
-          <Button onClick={this.handleLoadMore} />
-        )}
-      </div>
-    );
-  }
-}
+  return (
+    <div className="App">
+      <Searchbar onSubmit={handleTextSubmit} />
+      <ImageGallery data={gallery} />
+      {isLoad && <Loader />}
+      {gallery.length > 0 && totalHits > page * perPage && !isLoad && (
+        <Button onClick={handleLoadMore} />
+      )}
+    </div>
+  );
+};
 
 export default App;
