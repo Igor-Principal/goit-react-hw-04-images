@@ -9,9 +9,10 @@ const App = () => {
   const [gallery, setGallery] = useState([]);
   const [page, setPage] = useState(1);
   const [textFind, setTextFind] = useState('');
-  const [perPage, setPerPage] = useState(12);
+  // const [perPage, setPerPage] = useState(12);
   const [isLoad, setIsLoad] = useState(false);
   const [totalHits, setTotalHits] = useState(0);
+  const perPage = 12;
 
   const handleTextSubmit = value => {
     if (!value) return;
@@ -29,7 +30,7 @@ const App = () => {
     setIsLoad(true);
     fetchImg(page, textFind, perPage)
       .then(data => {
-        setGallery(prev=> [...prev, ...data.hits]);
+        setGallery(prev => [...prev, ...data.hits]);
         setTotalHits(data.totalHits);
       })
       .catch(e => console.error('API Error:', e))
